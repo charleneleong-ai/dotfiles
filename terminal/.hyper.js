@@ -5,6 +5,7 @@
 module.exports = {
     config: {
         // choose xlor: '#000',
+        webGLRenderer: false,
         activeTab: '🚀',
         opacity: {
             focus: 0.8,
@@ -15,7 +16,7 @@ module.exports = {
         visor: {
             hotkey: 'Option+Ctrl+Space',
             position: 'top', // or left, right, bottom
-            width: 700, // Optional, defaults to half  of viewable area for horizontal positions, 100% for vertical
+            width: 700, // Optional, defaults to half  of viewable area for horizontal positions, 100% for vertical
             height: 900, // Optional, defaults to half of viewable area for vertical positions, 100% for horizontal
         },
 
@@ -27,12 +28,12 @@ module.exports = {
 
         hyperline: {
             plugins: [
-                "ip",
-                "cpu",
-                "memory",
-                "network",
-                "spotify",
-                
+                'ip',
+                'cpu',
+                'memory',
+                'network',
+                'spotify',
+
             ]
         },
         hypercwd: {
@@ -48,7 +49,7 @@ module.exports = {
 
 
     // font family with optional fallbacks
-    fontFamily: '"Fira Code", Menlo, "DejaVu Sans Mono", Consolas, "Lucida Console", monospace',
+    fontFamily: '"MesloLGS","Fira Code", Menlo, "DejaVu Sans Mono", Consolas, "Lucida Console", monospace',
 
     // default font weight: 'normal' or 'bold'
     fontWeight: 'normal',
@@ -160,7 +161,7 @@ module.exports = {
     // if `true` (without backticks and without quotes), on right click selected text will be copied or pasted if no
     // selection is present (`true` by default on Windows and disables the context menu feature)
     quickEdit: false,
-     
+
     // choose either `'vertical'`, if you want the column mode when Option key is hold during selection (Default)
     // or `'force'`, if you want to force selection regardless of whether the terminal is in mouse events mode
     // (inside tmux or vim with mouse mode enabled for example).
@@ -181,16 +182,18 @@ module.exports = {
     //   `hyperpower`
     //   `@company/project`
     //   `project#1.0.1`
-    plugins: ['hyperterm-visor', 
-                'hyperline', 
-                'hypercwd', "hyper-pane", 
-                "hyperterm-summon", 
-                "hyper-opacity", 
-                "hyper-font-ligatures", 
-                "hyper-active-tab", 
-                "hyper-drop-file"
+    plugins: ['hyper-font-ligatures',
+                'hyperterm-visor',
+                'hyperline',
+                'hypercwd', 
+                'hyper-pane',
+                'hyperterm-summon',
+                'hyper-opacity',
+                'hyper-font-ligatures',
+                'hyper-active-tab',
+                'hyper-drop-file'
             ],
-       
+
 
     // in development, you can create a directory under
     // `~/.hyper_plugins/local/` and include it here
@@ -201,4 +204,4 @@ module.exports = {
         // Example
         // 'window:devtools': 'cmd+alt+o',
     },
-}; 
+};

@@ -1,3 +1,10 @@
+# Enable Powerlevel10k instant prompt. Should stay close to the top of ~/.zshrc.
+# Initialization code that may require console input (password prompts, [y/n]
+# confirmations, etc.) must go above this block; everything else may go below.
+if [[ -r "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh" ]]; then
+  source "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh"
+fi
+
 # If you come from bash you might have to change your $PATH.
 # export PATH=$HOME/bin:/usr/local/bin:$PATH
 ZSH_DISABLE_COMPFIX=true
@@ -9,11 +16,11 @@ export ZSH="$HOME/.oh-my-zsh"
 # load a random theme each time oh-my-zsh is loaded, in which case,
 # to know which specific one was loaded, run: echo $RANDOM_THEME
 # See https://github.com/robbyrussell/oh-my-zsh/wiki/Themes
-ZSH_THEME="spaceship"
+ZSH_THEME="powerlevel10k/powerlevel10k"
 SPACESHIP_CONDA_COLOR=050
 setopt EXTENDED_GLOB
 
-
+autoload -Uz compinit && compinit
 
 # Set list of themes to pick from when loading at random
 # Setting this variable when ZSH_THEME=random will cause zsh to load
@@ -75,14 +82,14 @@ ZSH_CUSTOM_AUTOUPDATE_QUIET=true
 # Example format: plugins=(rails git textmate ruby lighthouse)
 # Add wisely, as too many plugins slow down shell startup.
 
-plugins=(git zsh-autosuggestions zsh-syntax-highlighting aws fzf zsh-completions)
-export UPDATE_ZSH_DAYS=2
+
+plugins=(git zsh-syntax-highlighting aws fzf zsh-completions zsh-autosuggestions )
 
 source $ZSH/oh-my-zsh.sh
 
 ## For AWS autocomplete
 source $HOME/.oh-my-zsh/custom/plugins/fzf-tab-completion/zsh/fzf-zsh-completion.sh
-# only aws command completion 
+# only aws command completion
 zstyle ':completion:*:*:aws' fzf-search-display true
 # or for everything
 zstyle ':completion:*' fzf-search-display true
@@ -594,72 +601,34 @@ export HISTCONTROL=erasedups
 
 source ~/env_scripts/conda_auto_env
 source ~/env_scripts/auto_venv
-source ~/env_scripts/saml2aws
-
-
-# Auto awsume
-function awsumex() {
-    . awsume $1; 
-    export AWS_PROFILE=$1;
-}
-
-# Random string
-function random-string() {
-    cat /dev/urandom | env LC_CTYPE=C tr -dc 'a-zA-Z0-9' | fold -w ${1:-32} | head -n 1
-}
 
 # AWS
 export PATH=/home/ec2-user/.local/bin:$PATH
 
 alias typora="open -a typora"
 
-alias rm="echo Use 'del', or the full path i.e. '/bin/rm'"
-
-alias trash="rmtrash" 
-
-# tabtab source for serverless package
-# uninstall by removing these lines or running `tabtab uninstall serverless`
-[[ -f /Users/chaleong/Documents/code/cloud/snow-connect-demo/serverless_stack/node_modules/tabtab/.completions/serverless.zsh ]] && . /Users/chaleong/Documents/code/cloud/snow-connect-demo/serverless_stack/node_modules/tabtab/.completions/serverless.zsh
-# tabtab source for sls package
-# uninstall by removing these lines or running `tabtab uninstall sls`
-[[ -f /Users/chaleong/Documents/code/cloud/snow-connect-demo/serverless_stack/node_modules/tabtab/.completions/sls.zsh ]] && . /Users/chaleong/Documents/code/cloud/snow-connect-demo/serverless_stack/node_modules/tabtab/.completions/sls.zsh
-# tabtab source for slss package
-# uninstall by removing these lines or running `tabtab uninstall slss`
-[[ -f /Users/chaleong/Documents/code/cloud/snow-connect-demo/serverless_stack/node_modules/tabtab/.completions/slss.zsh ]] && . /Users/chaleong/Documents/code/cloud/snow-connect-demo/serverless_stack/node_modules/tabtab/.completions/slss.zsh
-# tabtab source for packages
-# uninstall by removing these lines
-[[ -f ~/.config/tabtab/__tabtab.zsh ]] && . ~/.config/tabtab/__tabtab.zsh || true
-
-export EDITOR="code -w"
-
 PAGER=
-
-alias awsume='. awsume'
-
-# alias awsumex='~/scripts/auto_awsume.sh'
-
-alias awsp="source _awsp"
-
-alias aws-nuke='~/scripts/aws-nuke-v2.14.0-darwin-amd64'
-
-export LAYER_RELEASE_BUCKET=ops-monitor-releases LAYER_RELEASE_FOLDER=layers
-
-alias zshconfig='code ~/.zshrc'
 
 alias bfg='java -jar ~/bfg-1.13.0.jar'
 
+
 # >>> conda initialize >>>
 # !! Contents within this block are managed by 'conda init' !!
-__conda_setup="$('/Users/charlene.leong/anaconda3/bin/conda' 'shell.zsh' 'hook' 2> /dev/null)"
+__conda_setup="$('/Users/charleneleong/anaconda3/bin/conda' 'shell.zsh' 'hook' 2> /dev/null)"
 if [ $? -eq 0 ]; then
     eval "$__conda_setup"
 else
-    if [ -f "/Users/charlene.leong/anaconda3/etc/profile.d/conda.sh" ]; then
-        . "/Users/charlene.leong/anaconda3/etc/profile.d/conda.sh"
+    if [ -f "/Users/charleneleong/anaconda3/etc/profile.d/conda.sh" ]; then
+        . "/Users/charleneleong/anaconda3/etc/profile.d/conda.sh"
     else
-        export PATH="/Users/charlene.leong/anaconda3/bin:$PATH"
+        export PATH="/Users/charleneleong/anaconda3/bin:$PATH"
     fi
 fi
 unset __conda_setup
 # <<< conda initialize <<<
 
+alias code='code-insiders'
+alias rmtrash='trash-put'
+
+# To customize prompt, run `p10k configure` or edit ~/.p10k.zsh.
+[[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
