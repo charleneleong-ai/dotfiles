@@ -83,7 +83,7 @@ ZSH_CUSTOM_AUTOUPDATE_QUIET=true
 # Add wisely, as too many plugins slow down shell startup.
 
 
-plugins=(git zsh-syntax-highlighting aws fzf zsh-completions zsh-autosuggestions )
+plugins=(git zsh-syntax-highlighting aws fzf zsh-completions zsh-autosuggestions virtualenv )
 
 source $ZSH/oh-my-zsh.sh
 
