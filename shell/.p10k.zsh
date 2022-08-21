@@ -88,8 +88,8 @@
     vim_shell               # vim shell indicator (:sh)
     midnight_commander      # midnight commander shell (https://midnight-commander.org/)
     nix_shell               # nix shell (https://nixos.org/nixos/nix-pills/developing-with-nix-shell.html)
-    # vpn_ip                # virtual private network indicator
-    # load                  # CPU load
+    vpn_ip                # virtual private network indicator
+
     # disk_usage            # disk usage
     # ram                   # free RAM
     # swap                  # used swap
@@ -101,8 +101,9 @@
     newline
     # ip                    # ip address and bandwidth usage for a specified network interface
     # public_ip             # public IP address
-    proxy                 # system-wide http/https/ftp proxy
+    # proxy                 # system-wide http/https/ftp proxy
     # battery               # internal battery
+    load                  # CPU load
     wifi                  # wifi speed
     # example               # example user-defined segment (see prompt_example function below)
   )

@@ -83,7 +83,7 @@ ZSH_CUSTOM_AUTOUPDATE_QUIET=true
 # Add wisely, as too many plugins slow down shell startup.
 
 
-plugins=(git zsh-syntax-highlighting aws fzf zsh-completions zsh-autosuggestions virtualenv )
+plugins=(git zsh-syntax-highlighting aws fzf zsh-completions zsh-autosuggestions virtualenv)
 
 source $ZSH/oh-my-zsh.sh
 
@@ -599,36 +599,33 @@ export PATH=~/.local/bin:$PATH
 export HISTSIZE=9000
 export HISTCONTROL=erasedups
 
-source ~/env_scripts/conda_auto_env
-source ~/env_scripts/auto_venv
-
-# AWS
-export PATH=/home/ec2-user/.local/bin:$PATH
-
-alias typora="open -a typora"
-
-PAGER=
+source ~/scripts/conda_auto_env
+source ~/scripts/auto_venv
+source ~/scripts/zsh-poetry/poetry.zsh
 
 alias bfg='java -jar ~/bfg-1.13.0.jar'
-
-
-# >>> conda initialize >>>
-# !! Contents within this block are managed by 'conda init' !!
-__conda_setup="$('/Users/charleneleong/anaconda3/bin/conda' 'shell.zsh' 'hook' 2> /dev/null)"
-if [ $? -eq 0 ]; then
-    eval "$__conda_setup"
-else
-    if [ -f "/Users/charleneleong/anaconda3/etc/profile.d/conda.sh" ]; then
-        . "/Users/charleneleong/anaconda3/etc/profile.d/conda.sh"
-    else
-        export PATH="/Users/charleneleong/anaconda3/bin:$PATH"
-    fi
-fi
-unset __conda_setup
-# <<< conda initialize <<<
 
 alias code='code-insiders'
 alias rmtrash='trash-put'
 
 # To customize prompt, run `p10k configure` or edit ~/.p10k.zsh.
 [[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
+
+
+## AWS
+export AWS_PROFILE=franklin-sandbox
+export PATH=/home/ec2-user/.local/bin:$PATH
+
+## Java
+export JAVA_HOME=/Library/Java/JavaVirtualMachines/zulu-8.jdk/Contents/home/jre
+
+export AUTOSWITCH_DEFAULT_PYTHON="/usr/bin/python3"
+
+## Poetry 
+export PATH="$HOME/.poetry/bin:$PATH"
+alias peodd='/Users/charleneleong/Documents/relevance_ai/peodd/peodd/peodd.py'
+mkdir $ZSH_CUSTOM/plugins/poetry
+poetry completions zsh > $ZSH_CUSTOM/plugins/poetry/_poetryexport PATH="$HOME/.tfenv/bin:$PATH"
+
+## Kubernetes Config PAth
+export KUBE_CONFIG_PATH="$HOME/.kube/config"
