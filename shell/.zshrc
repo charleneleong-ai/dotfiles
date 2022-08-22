@@ -87,7 +87,7 @@ ZSH_CUSTOM_AUTOUPDATE_QUIET=true
 # Add wisely, as too many plugins slow down shell startup.
 
 
-plugins=(git zsh-syntax-highlighting aws fzf zsh-completions zsh-autosuggestions activate-py-environment)
+plugins=(git zsh-syntax-highlighting aws fzf zsh-completions zsh-autosuggestions)
 
 source $ZSH/oh-my-zsh.sh
 
