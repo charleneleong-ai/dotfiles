@@ -1,9 +1,13 @@
+# To customize prompt, run `p10k configure` or edit ~/.p10k.zsh.
+[[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
+
 # Enable Powerlevel10k instant prompt. Should stay close to the top of ~/.zshrc.
 # Initialization code that may require console input (password prompts, [y/n]
 # confirmations, etc.) must go above this block; everything else may go below.
 if [[ -r "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh" ]]; then
   source "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh"
 fi
+
 
 # If you come from bash you might have to change your $PATH.
 # export PATH=$HOME/bin:/usr/local/bin:$PATH
@@ -603,29 +607,13 @@ source ~/scripts/conda_auto_env
 source ~/scripts/auto_venv
 source ~/scripts/zsh-poetry/poetry.zsh
 
-alias bfg='java -jar ~/bfg-1.13.0.jar'
-
 alias code='code-insiders'
 alias rmtrash='trash-put'
-
-# To customize prompt, run `p10k configure` or edit ~/.p10k.zsh.
-[[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
-
-
-## AWS
-export AWS_PROFILE=franklin-sandbox
-export PATH=/home/ec2-user/.local/bin:$PATH
 
 ## Java
 export JAVA_HOME=/Library/Java/JavaVirtualMachines/zulu-8.jdk/Contents/home/jre
 
 export AUTOSWITCH_DEFAULT_PYTHON="/usr/bin/python3"
-
-## Poetry 
-export PATH="$HOME/.poetry/bin:$PATH"
-alias peodd='/Users/charleneleong/Documents/relevance_ai/peodd/peodd/peodd.py'
-mkdir $ZSH_CUSTOM/plugins/poetry
-poetry completions zsh > $ZSH_CUSTOM/plugins/poetry/_poetryexport PATH="$HOME/.tfenv/bin:$PATH"
 
 ## Kubernetes Config PAth
 export KUBE_CONFIG_PATH="$HOME/.kube/config"
