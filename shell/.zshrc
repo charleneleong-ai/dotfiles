@@ -87,7 +87,7 @@ ZSH_CUSTOM_AUTOUPDATE_QUIET=true
 # Add wisely, as too many plugins slow down shell startup.
 
 
-plugins=(git zsh-syntax-highlighting aws fzf zsh-completions zsh-autosuggestions virtualenv)
+plugins=(git zsh-syntax-highlighting aws fzf zsh-completions zsh-autosuggestions activate-py-environment)
 
 source $ZSH/oh-my-zsh.sh
 
@@ -606,9 +606,15 @@ export HISTCONTROL=erasedups
 source ~/scripts/conda_auto_env
 source ~/scripts/auto_venv
 source ~/scripts/zsh-poetry/poetry.zsh
+export ZSH_POETRY_AUTO_ACTIVATE=1
+
+alias bfg='java -jar ~/bfg-1.13.0.jar'
 
 alias code='code-insiders'
 alias rmtrash='trash-put'
+
+## AWS
+export PATH=/home/ubuntu/.local/bin:$PATH
 
 ## Java
 export JAVA_HOME=/Library/Java/JavaVirtualMachines/zulu-8.jdk/Contents/home/jre
