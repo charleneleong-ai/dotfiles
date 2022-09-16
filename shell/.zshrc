@@ -614,6 +614,8 @@ alias bfg='java -jar ~/bfg-1.13.0.jar'
 alias code='code-insiders'
 alias rmtrash='trash-put'
 
+PAGER=
+
 ## AWS
 export PATH=/home/ubuntu/.local/bin:$PATH
 
