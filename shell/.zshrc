@@ -613,8 +613,6 @@ export HISTCONTROL=erasedups
 
 source ~/scripts/conda_auto_env
 source ~/scripts/auto_venv
-source ~/scripts/zsh-poetry/poetry.zsh
-export ZSH_POETRY_AUTO_ACTIVATE=1
 
 alias bfg='java -jar ~/bfg-1.13.0.jar'
 
