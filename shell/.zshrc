@@ -602,7 +602,12 @@ httpDebug() { /usr/bin/curl $@ -o /dev/null -w "dns: %{time_namelookup} connect:
 #   ---------------------------------------
 
 ## List large files
-lsl() { find -type f -exec du -Sh {} + | sort -rh | head -n $@; } 
+lsl() { find -type f -exec du -Sh {} + | sort -rh | head -n $@; }
+
+#   ---------------------------------------
+
+# GO
+export PATH=$PATH:/usr/local/go/bin
 
 #   ---------------------------------------
 
