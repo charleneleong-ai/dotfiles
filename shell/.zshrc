@@ -88,7 +88,7 @@ ZSH_CUSTOM_AUTOUPDATE_QUIET=true
 # Add wisely, as too many plugins slow down shell startup.
 
 
-plugins=(git zsh-syntax-highlighting aws fzf zsh-completions zsh-autosuggestions)
+plugins=(git zsh-syntax-highlighting aws fzf zsh-completions zsh-autosuggestions virtualenv poetry)
 
 source $ZSH/oh-my-zsh.sh
 
@@ -187,7 +187,7 @@ export BLOCKSIZE=1k
 
 #   -----------------------------
 
-alias python='python3'
+alias python='python3.11'
 
 alias cp='cp -iv'                         # Preferred 'cp' implementation
 
@@ -618,6 +618,7 @@ export HISTCONTROL=erasedups
 
 source ~/scripts/conda_auto_env
 source ~/scripts/auto_venv
+# source ~/scripts/zsh-poetry/poetry.zsh
 
 alias bfg='java -jar ~/bfg-1.13.0.jar'
 
@@ -626,13 +627,24 @@ alias rmtrash='trash-put'
 
 PAGER=
 
+export AUTOSWITCH_DEFAULT_PYTHON="/usr/bin/python3"
+
 ## AWS
 export PATH=/home/ubuntu/.local/bin:$PATH
+export AWS_PROFILE=charleneleong4
+export PATH=/home/ec2-user/.local/bin:$PATH
 
 ## Java
 export JAVA_HOME=/Library/Java/JavaVirtualMachines/zulu-8.jdk/Contents/home/jre
 
-export AUTOSWITCH_DEFAULT_PYTHON="/usr/bin/python3"
-
 ## Kubernetes Config PAth
 export KUBE_CONFIG_PATH="$HOME/.kube/config"
+
+## Poetry 
+export PATH="$HOME/.local/bin:$PATH"
+
+## Airflow
+export AIRFLOW_HOME='~/airflow'
+export PATH=$PATH:$(npm get prefix)/bin
+
+# alias docker_kill_all='docker kill $(docker ps -q)'
