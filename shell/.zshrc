@@ -187,7 +187,7 @@ export BLOCKSIZE=1k
 
 #   -----------------------------
 
-alias python='python3.11'
+alias python='python3'
 
 alias cp='cp -iv'                         # Preferred 'cp' implementation
 
@@ -611,7 +611,7 @@ export PATH=$PATH:/usr/local/go/bin
 
 #   ---------------------------------------
 
-export PATH=~/.local/bin:$PATH
+export PATH=~/.local/bin:$PATH:~/bin
 
 export HISTSIZE=9000
 export HISTCONTROL=erasedups
@@ -648,3 +648,7 @@ export AIRFLOW_HOME='~/airflow'
 export PATH=$PATH:$(npm get prefix)/bin
 
 # alias docker_kill_all='docker kill $(docker ps -q)'
+
+[ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
+
+
