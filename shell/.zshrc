@@ -1,5 +1,3 @@
-# To customize prompt, run `p10k configure` or edit ~/.p10k.zsh.
-[[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
 
 # Enable Powerlevel10k instant prompt. Should stay close to the top of ~/.zshrc.
 # Initialization code that may require console input (password prompts, [y/n]
@@ -7,8 +5,6 @@
 if [[ -r "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh" ]]; then
   source "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh"
 fi
-
-typeset -g POWERLEVEL9K_INSTANT_PROMPT=quiet
 
 # If you come from bash you might have to change your $PATH.
 # export PATH=$HOME/bin:/usr/local/bin:$PATH
@@ -22,7 +18,6 @@ export ZSH="$HOME/.oh-my-zsh"
 # to know which specific one was loaded, run: echo $RANDOM_THEME
 # See https://github.com/robbyrussell/oh-my-zsh/wiki/Themes
 ZSH_THEME="powerlevel10k/powerlevel10k"
-SPACESHIP_CONDA_COLOR=050
 setopt EXTENDED_GLOB
 
 autoload -Uz compinit && compinit
@@ -187,7 +182,9 @@ export BLOCKSIZE=1k
 
 #   -----------------------------
 
-alias python='python3'
+alias python='python3.11'
+
+alias pip='pip3'
 
 alias cp='cp -iv'                         # Preferred 'cp' implementation
 
@@ -599,56 +596,195 @@ httpDebug() { /usr/bin/curl $@ -o /dev/null -w "dns: %{time_namelookup} connect:
 
 #   then use: ~/Dev/Perl/randBytes 1048576 > 10MB.dat
 
-#   ---------------------------------------
-
-## List large files
-lsl() { find -type f -exec du -Sh {} + | sort -rh | head -n $@; }
-
-#   ---------------------------------------
-
-# GO
-export PATH=$PATH:/usr/local/go/bin
-
-#   ---------------------------------------
-
-export PATH=~/.local/bin:$PATH:~/bin
+export PATH=~/.local/bin:$PATH
 
 export HISTSIZE=9000
 export HISTCONTROL=erasedups
 
-source ~/scripts/conda_auto_env
+# source ~/scripts/conda_auto_env  # removed: slows startup (runs find on cd)
 source ~/scripts/auto_venv
 # source ~/scripts/zsh-poetry/poetry.zsh
 
+
+alias typora="open -a typora"
+
+PAGER=
+
 alias bfg='java -jar ~/bfg-1.13.0.jar'
+
 
 alias code='code-insiders'
 alias rmtrash='trash-put'
 
-PAGER=
+# To customize prompt, run `p10k configure` or edit ~/.p10k.zsh.
+[[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
 
-export AUTOSWITCH_DEFAULT_PYTHON="/usr/bin/python3"
 
 ## AWS
-export PATH=/home/ubuntu/.local/bin:$PATH
 export AWS_PROFILE=charleneleong4
 export PATH=/home/ec2-user/.local/bin:$PATH
 
 ## Java
 export JAVA_HOME=/Library/Java/JavaVirtualMachines/zulu-8.jdk/Contents/home/jre
 
-## Kubernetes Config PAth
-export KUBE_CONFIG_PATH="$HOME/.kube/config"
+export AUTOSWITCH_DEFAULT_PYTHON="/usr/bin/python3"
 
 ## Poetry 
 export PATH="$HOME/.local/bin:$PATH"
 
 ## Airflow
 export AIRFLOW_HOME='~/airflow'
-export PATH=$PATH:$(npm get prefix)/bin
+export PATH=$PATH:/usr/local/bin  # was: $(npm get prefix)/bin — hardcoded to avoid subprocess at startup
 
 # alias docker_kill_all='docker kill $(docker ps -q)'
 
-[ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
+# gcloud PATH — keep eager (fast, just sets PATH/env vars)
+if [ -f '/Users/charleneleong/Downloads/google-cloud-sdk/path.zsh.inc' ]; then
+  . '/Users/charleneleong/Downloads/google-cloud-sdk/path.zsh.inc'
+fi
+
+# gcloud completions — lazy-load on first use
+gcloud() {
+  unfunction gcloud 2>/dev/null
+  if [ -f '/Users/charleneleong/Downloads/google-cloud-sdk/completion.zsh.inc' ]; then
+    . '/Users/charleneleong/Downloads/google-cloud-sdk/completion.zsh.inc'
+  fi
+  gcloud "$@"
+}
+
+export NVM_DIR="$HOME/.nvm"
+# nvm lazy-load — speeds up startup significantly
+nvm() {
+  unfunction nvm node npm npx yarn 2>/dev/null
+  [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+  [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"
+  nvm "$@"
+}
+node() { unfunction node 2>/dev/null; nvm use default >/dev/null 2>&1; node "$@"; }
+npm()  { unfunction npm  2>/dev/null; nvm use default >/dev/null 2>&1; npm  "$@"; }
+npx()  { unfunction npx  2>/dev/null; nvm use default >/dev/null 2>&1; npx  "$@"; }
+yarn() { unfunction yarn 2>/dev/null; nvm use default >/dev/null 2>&1; yarn "$@"; }
 
 
+
+# API keys (loaded from separate file)
+[[ -f ~/.api_keys ]] && source ~/.api_keys
+
+# OpenClaw Completion
+source "/Users/charleneleong/.openclaw/completions/openclaw.zsh"
+
+# Claude Code: decode mangled project directory name back to real path
+_decode_claude_path() {
+  local enc="${1#-}"
+  local path="/"
+  local -a tokens=(${(s:-:)enc})
+  local i=1
+  while (( i <= $#tokens )); do
+    local candidate="${tokens[$i]}"
+    while (( i + 1 <= $#tokens )) && [[ ! -d "${path}${candidate}" ]]; do
+      (( i++ ))
+      candidate="${candidate}-${tokens[$i]}"
+    done
+    path="${path}${candidate}/"
+    (( i++ ))
+  done
+  echo "${path%/}"
+}
+
+# Claude Code: extract session title + first message label (cached)
+_CLAUDE_LABEL_CACHE="$HOME/.claude/.session-labels"
+_claude_session_label() {
+  local file="$1" sid="$2"
+  # Check cache first
+  if [[ -f "$_CLAUDE_LABEL_CACHE" ]]; then
+    local cached=$(grep "^${sid}\t" "$_CLAUDE_LABEL_CACHE" 2>/dev/null | cut -f2-)
+    if [[ -n "$cached" ]]; then
+      echo "$cached"
+      return
+    fi
+  fi
+  # Extract custom title (if set) + first user message
+  local label
+  label=$(python3 -c "
+import json, sys
+title = ''
+msg = ''
+for line in open(sys.argv[1]):
+    try:
+        obj = json.loads(line)
+    except: continue
+    if not title and obj.get('type') == 'custom-title':
+        title = obj.get('customTitle', '')
+    if not msg and obj.get('type') == 'user':
+        content = obj.get('message', {}).get('content', '')
+        if isinstance(content, list):
+            content = ' '.join(c.get('text','') for c in content if c.get('type')=='text')
+        msg = ' '.join(content.split())
+        if len(msg) > 150:
+            msg = msg[:150].rsplit(' ', 1)[0] + '...'
+parts = []
+if title: parts.append('[' + title + ']')
+if msg: parts.append(msg)
+print(' '.join(parts) if parts else '<empty>')
+" "$file" 2>/dev/null)
+  label="${label:-<empty>}"
+  # Cache it
+  mkdir -p "$(dirname "$_CLAUDE_LABEL_CACHE")"
+  echo "${sid}\t${label}" >> "$_CLAUDE_LABEL_CACHE"
+  echo "$label"
+}
+
+# _claude_sorted_sessions: list session files sorted by recency
+_claude_sorted_sessions() {
+  find ~/.claude/projects -name '*.jsonl' -type f -not -path '*/subagents/*' -not -name 'history*' -print0 2>/dev/null \
+    | xargs -0 command ls -t 2>/dev/null
+}
+
+# cr: resume a Claude session from any directory
+# Usage: cr          - resume latest session globally
+#        cr <n>      - resume nth session from cls (e.g. cr 3)
+#        cr <id>     - resume by full or partial session ID
+cr() {
+  local file
+  if [[ -z "$1" ]]; then
+    file=$(_claude_sorted_sessions | head -1)
+  elif [[ "$1" =~ ^[0-9]+$ ]]; then
+    file=$(_claude_sorted_sessions | sed -n "${1}p")
+  else
+    file=$(find ~/.claude/projects -name "${1}*.jsonl" -type f 2>/dev/null | head -1)
+  fi
+  if [[ -z "$file" ]]; then
+    echo "Session not found: $1"
+    return 1
+  fi
+  local sid=$(basename "$file" .jsonl)
+  local project_dir=$(_decode_claude_path "$(basename "$(dirname "$file")")") 
+  local label=$(_claude_session_label "$file" "$sid")
+  printf "\033[1mResuming:\033[0m %s\n" "$label"
+  printf "  \033[2mproject:\033[0m %s\n" "$project_dir"
+  (cd "$project_dir" 2>/dev/null && claude --resume)
+}
+
+# cls: list recent Claude sessions across all projects
+# Usage: cls [n]  - show n most recent sessions (default 10)
+cls() {
+  local _r=$'\033[0m' _bo=$'\033[1m' _dim=$'\033[2m'
+  local _cy=$'\033[36m' _yl=$'\033[33m' _gn=$'\033[32m' _mg=$'\033[35m'
+  printf "%s\n\n" "${_bo}Recent Claude sessions${_r} ${_dim}(use 'cr <#>' to resume)${_r}"
+  local i=0
+  _claude_sorted_sessions \
+    | head -${1:-10} \
+    | while read -r file; do
+        (( i++ ))
+        local date=$(command ls -ld "$file" 2>/dev/null | awk '{print $6, $7, $8}')
+        local sid=$(basename "$file" .jsonl)
+        local proj=$(_decode_claude_path "$(basename "$(dirname "$file")")") 
+        local raw_label=$(_claude_session_label "$file" "$sid")
+        local short_id="${sid[1,8]}"
+        local short_proj="${proj/#$HOME/~}"
+        # Color the [title] portion cyan, rest default
+        local colored_label=$(echo "$raw_label" | sed "s/\[\([^]]*\)\]/${_bo}${_cy}[\1]${_r}/g")
+        printf "  ${_bo}${_mg}%2d.${_r} ${_dim}%-12s${_r} %s\n" "$i" "$date" "$colored_label"
+        printf "      %12s ${_yl}%s${_r}  ${_gn}%s${_r}\n" "" "$short_id" "$short_proj"
+      done
+}
