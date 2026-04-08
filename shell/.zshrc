@@ -703,29 +703,46 @@ _claude_session_label() {
       return
     fi
   fi
-  # Extract custom title (if set) + first user message
+  # Extract session name (agentName), custom title, and first user message
   local label
   label=$(python3 -c "
-import json, sys
-title = ''
+import json, sys, re
+name = ''    # agentName — explicit session name
+title = ''   # custom-title — may be auto-generated
 msg = ''
 for line in open(sys.argv[1]):
     try:
         obj = json.loads(line)
     except: continue
-    if not title and obj.get('type') == 'custom-title':
+    if obj.get('type') == 'agent-name':
+        name = obj.get('agentName', '')
+    if obj.get('type') == 'custom-title':
         title = obj.get('customTitle', '')
     if not msg and obj.get('type') == 'user':
         content = obj.get('message', {}).get('content', '')
         if isinstance(content, list):
             content = ' '.join(c.get('text','') for c in content if c.get('type')=='text')
-        msg = ' '.join(content.split())
-        if len(msg) > 150:
-            msg = msg[:150].rsplit(' ', 1)[0] + '...'
-parts = []
-if title: parts.append('[' + title + ']')
-if msg: parts.append(msg)
-print(' '.join(parts) if parts else '<empty>')
+        candidate = ' '.join(content.split())
+        if not candidate.startswith('<'):  # skip system-injected caveat messages
+            msg = candidate
+            if len(msg) > 150:
+                msg = msg[:150].rsplit(' ', 1)[0] + '...'
+# Prefer agentName (user-set session name) over auto-generated title
+display = name or title
+if display:
+    # Strip (Branch N) suffix and track if it was a conversation branch
+    branch_m = re.search(r'\s*\(Branch\s*(\d*)\)', display)
+    bare = re.sub(r'\s*\(Branch\s*\d*\)\s*$', '', display).strip()
+    branch_tag = ''
+    if branch_m and not name:
+        n = branch_m.group(1)
+        branch_tag = ' \u21b3' + (n if n else '')
+    if msg.startswith(bare[:40]) or bare.startswith(msg[:40]):
+        print('[' + bare + ']' + branch_tag)
+    else:
+        print('[' + bare + '] ' + msg + branch_tag)
+else:
+    print(msg if msg else '<empty>')
 " "$file" 2>/dev/null)
   label="${label:-<empty>}"
   # Cache it
@@ -734,9 +751,39 @@ print(' '.join(parts) if parts else '<empty>')
   echo "$label"
 }
 
+# Claude Code: extract last gitBranch from session file (cached)
+_CLAUDE_BRANCH_CACHE="$HOME/.claude/.session-branches"
+_claude_session_branch() {
+  local file="$1" sid="$2"
+  if [[ -f "$_CLAUDE_BRANCH_CACHE" ]]; then
+    local cached=$(grep "^${sid}\t" "$_CLAUDE_BRANCH_CACHE" 2>/dev/null | cut -f2-)
+    if [[ -n "$cached" ]]; then
+      echo "$cached"
+      return
+    fi
+  fi
+  local branch
+  branch=$(python3 -c "
+import json, sys
+branch = ''
+for line in open(sys.argv[1]):
+    try:
+        obj = json.loads(line)
+    except: continue
+    b = obj.get('gitBranch', '')
+    if b: branch = b
+print(branch)
+" "$file" 2>/dev/null)
+  if [[ -n "$branch" ]]; then
+    mkdir -p "$(dirname "$_CLAUDE_BRANCH_CACHE")"
+    echo "${sid}\t${branch}" >> "$_CLAUDE_BRANCH_CACHE"
+  fi
+  echo "$branch"
+}
+
 # _claude_sorted_sessions: list session files sorted by recency
 _claude_sorted_sessions() {
-  find ~/.claude/projects -name '*.jsonl' -type f -not -path '*/subagents/*' -not -name 'history*' -print0 2>/dev/null \
+  find ~/.claude/projects -name '*.jsonl' -type f -not -path '*/subagents/*' -not -name 'history*' -not -name 'agent-*' -print0 2>/dev/null \
     | xargs -0 command ls -t 2>/dev/null
 }
 
@@ -744,8 +791,12 @@ _claude_sorted_sessions() {
 # Usage: cr          - resume latest session globally
 #        cr <n>      - resume nth session from cls (e.g. cr 3)
 #        cr <id>     - resume by full or partial session ID
+#        cr <n> n    - branch session n (copy history → new session)
 cr() {
   local file
+  local branch_mode=false
+  [[ "$2" == "n" || "$2" == "--new" ]] && branch_mode=true
+
   if [[ -z "$1" ]]; then
     file=$(_claude_sorted_sessions | head -1)
   elif [[ "$1" =~ ^[0-9]+$ ]]; then
@@ -760,31 +811,69 @@ cr() {
   local sid=$(basename "$file" .jsonl)
   local project_dir=$(_decode_claude_path "$(basename "$(dirname "$file")")") 
   local label=$(_claude_session_label "$file" "$sid")
-  printf "\033[1mResuming:\033[0m %s\n" "$label"
-  printf "  \033[2mproject:\033[0m %s\n" "$project_dir"
-  (cd "$project_dir" 2>/dev/null && claude --resume)
+
+  if $branch_mode; then
+    local new_sid=$(python3 -c "import uuid; print(uuid.uuid4())")
+    local new_file="$(dirname "$file")/${new_sid}.jsonl"
+    command cp "$file" "$new_file"
+    printf "\033[1mBranching:\033[0m %s\n" "$label"
+    printf "  \033[2mproject:\033[0m %s\n" "$project_dir"
+    printf "  \033[2mnew sid:\033[0m %s\n" "$new_sid"
+    (cd "$project_dir" 2>/dev/null && claude --resume "$new_sid")
+  else
+    printf "\033[1mResuming:\033[0m %s\n" "$label"
+    printf "  \033[2mproject:\033[0m %s\n" "$project_dir"
+    (cd "$project_dir" 2>/dev/null && claude --resume "$sid")
+  fi
 }
 
 # cls: list recent Claude sessions across all projects
-# Usage: cls [n]  - show n most recent sessions (default 10)
+# Usage: cls [n]        - show n most recent sessions (default 10)
+#        cls <query>    - search sessions by keyword (label or project path)
 cls() {
   local _r=$'\033[0m' _bo=$'\033[1m' _dim=$'\033[2m'
   local _cy=$'\033[36m' _yl=$'\033[33m' _gn=$'\033[32m' _mg=$'\033[35m'
-  printf "%s\n\n" "${_bo}Recent Claude sessions${_r} ${_dim}(use 'cr <#>' to resume)${_r}"
+  local query=""
+  local limit=10
+  if [[ -n "$1" && ! "$1" =~ ^[0-9]+$ ]]; then
+    query="$1"
+    limit=9999
+    printf "%s\n\n" "${_bo}Claude sessions matching '${query}'${_r} ${_dim}(use 'cr <#>' to resume)${_r}"
+  else
+    [[ -n "$1" ]] && limit="$1"
+    printf "%s\n\n" "${_bo}Recent Claude sessions${_r} ${_dim}(use 'cr <#>' to resume)${_r}"
+  fi
   local i=0
   _claude_sorted_sessions \
-    | head -${1:-10} \
     | while read -r file; do
-        (( i++ ))
-        local date=$(command ls -ld "$file" 2>/dev/null | awk '{print $6, $7, $8}')
         local sid=$(basename "$file" .jsonl)
         local proj=$(_decode_claude_path "$(basename "$(dirname "$file")")") 
         local raw_label=$(_claude_session_label "$file" "$sid")
-        local short_id="${sid[1,8]}"
         local short_proj="${proj/#$HOME/~}"
+        # Filter by query if searching
+        # Skip empty sessions and bare plugin commands
+        [[ "$raw_label" == "<empty>" ]] && continue
+        [[ "$raw_label" =~ ^(plugins:(add|remove|list)|mcp|init)$ ]] && continue
+        if [[ -n "$query" ]]; then
+          [[ "${raw_label:l}" != *"${query:l}"* && "${short_proj:l}" != *"${query:l}"* ]] && continue
+        fi
+        (( i++ ))
+        [[ $i -gt $limit ]] && break
+        local date=$(command ls -ld "$file" 2>/dev/null | awk '{print $6, $7, $8}')
+        local short_id="${sid[1,8]}"
         # Color the [title] portion cyan, rest default
         local colored_label=$(echo "$raw_label" | sed "s/\[\([^]]*\)\]/${_bo}${_cy}[\1]${_r}/g")
+        local branch=$(_claude_session_branch "$file" "$sid")
+        # If session has a [name] label, prefer a git branch with that name if it exists
+        if [[ "$raw_label" =~ ^\[([^]]+)\] ]]; then
+          local session_branch="${match[1]}"
+          if git -C "$proj" rev-parse --verify "refs/heads/$session_branch" &>/dev/null 2>&1; then
+            branch="$session_branch"
+          fi
+        fi
         printf "  ${_bo}${_mg}%2d.${_r} ${_dim}%-12s${_r} %s\n" "$i" "$date" "$colored_label"
-        printf "      %12s ${_yl}%s${_r}  ${_gn}%s${_r}\n" "" "$short_id" "$short_proj"
+        printf "      %12s ${_yl}%s${_r}  ${_gn}%s${_r}" "" "$short_id" "$short_proj"
+        [[ -n "$branch" ]] && printf "  ${_dim}(%s)${_r}" "$branch"
+        printf "\n"
       done
 }
